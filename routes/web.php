@@ -16,3 +16,5 @@ Route::get('/', function () {
 });
 
 Route::post('generate')->uses('ReportsGeneratorController@generate');
+
+Route::get('image/{dir}/{company}/{file}')->uses('ReportsGeneratorController@getImage');

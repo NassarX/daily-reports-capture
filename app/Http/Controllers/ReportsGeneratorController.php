@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use Carbon\Carbon;
 use Spatie\Browsershot\Browsershot;
+use Symfony\Component\Process\Exception\ProcessFailedException;
 
 class ReportsGeneratorController extends Controller
 {
@@ -47,8 +48,8 @@ class ReportsGeneratorController extends Controller
 
 	    !file_exists($this->targetDir)? mkdir($this->targetDir): null;
 
-	    $this->targetFile = $this->targetDir.'/'.$this->companyDir.'-'.Carbon::today()->timestamp.'.png';
-	    $this->filePath = 'reports/'.$this->companyDir.'-'.Carbon::today()->timestamp.'.png';
+	    $this->targetFile = $this->targetDir.'/'.$this->companyDir.'-'.Carbon::now()->timestamp.'.png';
+	    $this->filePath = 'reports/'.$this->companyDir.'/'.$this->companyDir.'-'.Carbon::now()->timestamp.'.png';
     }
 
 	/**
@@ -63,7 +64,7 @@ class ReportsGeneratorController extends Controller
 
 		if (is_null($status)) {
 			return response()->json([
-				'report' => $this->filePath
+				'report' => url('image/'.$this->filePath)
 			])->setStatusCode(200);
 		} else {
 			return response()->json([
@@ -79,16 +80,25 @@ class ReportsGeneratorController extends Controller
 	 */
     public function capture($reportUrl, $targetFile)
     {
-	    $status = $this->browserShot
-		    ->setUrl($reportUrl)
-		    ->setNodeBinary('/usr/local/bin/node')
-		    ->setNpmBinary('/usr/local/bin/npm')
-		    ->fullPage()
-		    ->timeout(0)
-		    ->setNetworkIdleTimeout('6000')
-		    ->windowSize(1920, 1080)
-		    ->save($targetFile);
+    	try {
+		    $status = $this->browserShot
+			    ->setUrl($reportUrl)
+			    ->setNodeBinary('/usr/local/bin/node')
+			    ->setNpmBinary('/usr/local/bin/npm')
+			    ->fullPage()
+			    ->timeout(0)
+			    ->setNetworkIdleTimeout('6000')
+			    ->windowSize(1920, 1080)
+			    ->save($targetFile);
+		    return $status;
 
-	    return $status;
+	    } catch (ProcessFailedException $exception) {
+			$this->capture($reportUrl, $targetFile);
+	    }
+    }
+
+    public function getImage($dir, $company, $file)
+    {
+		return response()->file(public_path($dir.'/'.$company.'/'.$file));
     }
 }
