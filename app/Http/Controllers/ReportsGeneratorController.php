@@ -83,8 +83,9 @@ class ReportsGeneratorController extends Controller
     	try {
 		    $status = $this->browserShot
 			    ->setUrl($reportUrl)
-			    ->setNodeBinary('/usr/local/bin/node')
-			    ->setNpmBinary('/usr/local/bin/npm')
+			    ->setIncludePath(env('INCLUDE_PATH'))
+			    ->setNodeBinary(env('NODE_BINARY'))
+			    ->setNpmBinary(env('NPM_BINARY'))
 			    ->fullPage()
 			    ->timeout(0)
 			    ->setNetworkIdleTimeout('6000')
